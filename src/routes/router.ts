@@ -22,7 +22,7 @@ import productsSearchRouter from "./meta/products-search";
 router.use("/products-search", productsSearchRouter);
 import sitemapRouter from "./SEO/sitemap";
 router.use("/sitemap", sitemapRouter);
- 
+
 
 
 router.get('/check',auth,asyncHandler( async (req, res)=>{

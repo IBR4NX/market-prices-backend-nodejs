@@ -8,7 +8,8 @@ type SitemapUrl = {
   lastmod?: string | Date | null;
   priority: string;
 };
-
+ import customRouter from "./custom";
+router.use("/custom", customRouter);
 router.get("/sitemap.xml", async (_req: Request, res: Response) => {
   try {
     const MAP_URL = `https://${(_req.query.sender as string) ?? BASE_URL}`;
@@ -143,7 +144,7 @@ ${uniqueUrls
 
 router.get("/rss.xml", async (_req: Request, res: Response) => {
   try {
-    const MAP_URL =`https://${BASE_URL}`;// `https://${(_req.query.sender as string) ?? BASE_URL}`;
+    const MAP_URL = `https://${(_req.query.sender as string) ?? BASE_URL}`;
     const HUB_URL = "https://pubsubhubbub.appspot.com/";
     const FEED_URL = `https://${BASE_URL}/api/sitemap/rss.xml`;
     
@@ -259,7 +260,7 @@ router.get("/notify", async (_req: Request, res: Response) => {
 });
 
 
-function escapeXml(value: string): string {
+export function escapeXml(value: string): string {
   return value
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
