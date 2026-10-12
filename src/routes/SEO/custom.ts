@@ -3,37 +3,89 @@ import pool from "../../database";
 import { BASE_URL } from "../../config";
 import { escapeXml } from "./sitemap";
 const router = Router();
-type SitemapUrl = {
-  url: string;
-  lastmod?: string | Date | null;
-  priority: string;
-};
+interface ProductPrice {
+  price: number | string;
+  city: {
+    name: string;
+  } | null;
+}
 
+interface Product {
+  id: string | number;
+  name: string;
+  slug: string;
+  description?: string | null;
+  quantity?: number | string | null;
+  unit?: string | null;
+  updated_at: string;
+  category?: {
+    name: string;
+  } | null;
+  current_prices?: ProductPrice[];
+}
+// sitemap/custom/products.xml?sender=ibovs.vercel.app
 router.get("/:type", async (_req: Request, res: Response) => {
   try {
     const sender = _req.query.sender as string;
-    console.log("Generating RSS feed for type:", _req.params.type, "with sender:", _req.query.sender);
+    const type = _req.params.type
+
     const MAP_URL = `https://${sender || BASE_URL}`;
     const HUB_URL = "https://pubsubhubbub.appspot.com/";
-    const FEED_URL = `${MAP_URL}/sitemap/custom/${_req.params.type}.xml`;
-    
-    const result = await pool.query(`select name, description, slug FROM products;`,);
-    const sortedRows = result.rows.sort(
-      (a, b) =>
-        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
-    );
-    const items = sortedRows.map((price) => {
-      // const citySlug = price.city_name.trim().replace(/\s+/g, "-");
+    const FEED_URL = `${MAP_URL}/sitemap/custom/${type}?sender=${sender}`;
+    const result = await pool.query(`SELECT * FROM get_products(NULL);`);
 
-      const productSlug = price.slug.trim().replace(/\s+/g, "-");
+    const sortedRows: Product[] = result.rows
+      .map(
+        (row: { product?: Product } & Partial<Product>) =>
+          row.product ?? (row as Product),
+      )
+      .sort(
+        (a: Product, b: Product) =>
+          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
+      );
 
-      const url = `/${productSlug}`;
+    const items = sortedRows.map((product: Product) => {
+      const productName = product.name.trim();
+      const productSlug = product.slug;
 
+      const productQuantity =
+        product.quantity != null && product.unit
+          ? `${product.quantity} ${product.unit}`
+          : "";
+
+const prices = (product.current_prices ?? [])
+  .filter((item) => item.city?.name && item.price != null)
+  .sort((a, b) =>
+    a.city!.name.localeCompare(b.city!.name, "ar"),
+  );
+
+const priceDetails = prices.map((item) => {
+  const cityName = item.city!.name;
+  const price = Number(item.price).toLocaleString("en-US");
+
+  return `${cityName}: ${price} ريال`;
+});
+
+const description = [
+  `كم سعر ${product.name} ${product.quantity ?? ""} ${product.unit ?? ""} في اليمن؟`,
+  priceDetails.length
+    ? `الأسعار حسب المدينة: ${priceDetails.join("، ")}.`
+    : "لا تتوفر حاليًا أسعار مسجلة لهذا المنتج.",
+  `تابع أسعار ${product.name} وقارن الأسعار بين المدن اليمنية عبر منصة أسعار اليمن.`,
+]
+  .filter(Boolean)
+  .join(" ");
+
+
+
+      const title = productQuantity
+        ? `سعر ${productName} ${productQuantity} اليوم في اليمن`
+        : `سعر ${productName} اليوم في اليمن حسب المدينة`;
       return {
-        title: `سعر ${price.product_name} في ${price.city_name}`,
-        url: `${MAP_URL}${url}`,
-        description: `سعر ${price.product_name}  في محافظة ${price.city_name} اليوم هو ${price.price} ريال يمني لكل ${price.quantity} ${price.unit}. المنتج ضمن فئة ${price.category_name}،  مع أحدث تحديث متوفر للسعر, وأسباب التغيير`,
-        lastmod: price.updated_at,
+        title,
+        url: `${MAP_URL.replace(/\/+$/, "")}/${productSlug}`,
+        description,
+        lastmod: product.updated_at,
       };
     });
 
