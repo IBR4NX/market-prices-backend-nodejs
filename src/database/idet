@@ -1,0 +1,57 @@
+CREATE OR REPLACE FUNCTION public.get_current_prices(p_city_name text DEFAULT NULL::text, p_category_name text DEFAULT NULL::text, p_search text DEFAULT NULL::text)
+ RETURNS TABLE(product_id uuid, product_name character varying, category_id uuid, category_name character varying, category_slug varchar(255), city_id uuid, city_name character varying, city_slug varchar(255), price numeric, quantity numeric, unit character varying, updated_at timestamp with time zone)
+ LANGUAGE sql
+ STABLE
+AS $function$
+    SELECT
+        cp.product_id,
+        p.name        AS product_name,
+        p.slug         AS product_slug,
+        p.category_id,
+        cat.name      AS category_name,
+		cat.slug      AS category_slug,
+        cp.city_id,
+        c.name        AS city_name,
+        c.slug         AS city_slug,
+        cp.price,
+        p.quantity,
+        p.unit,
+        cp.updated_at
+    FROM current_prices cp
+    INNER JOIN products p
+        ON p.id = cp.product_id
+    INNER JOIN categories cat
+        ON cat.id = p.category_id
+    INNER JOIN cities c
+        ON c.id = cp.city_id
+    WHERE
+        p.is_active = TRUE
+        AND cat.is_active = TRUE
+        AND c.is_active = TRUE
+        -- فلترة بالمدينة (بالاسم، بحث جزئي غير حساس لحالة الأحرف)
+        AND (
+            p_city_name IS NULL
+            OR TRIM(p_city_name) = ''
+            OR c.name ILIKE '%' || TRIM(p_city_name) || '%'
+            OR c.slug ILIKE '%' || TRIM(p_city_name) || '%'
+        )
+        -- فلترة بالفئة (بالاسم، بحث جزئي)
+        AND (
+            p_category_name IS NULL
+            OR TRIM(p_category_name) = ''
+            OR cat.name ILIKE '%' || TRIM(p_category_name) || '%'
+            OR cat.slug ILIKE '%' || TRIM(p_category_name) || '%'
+        )
+        -- بحث عام يشمل: اسم المنتج + اسم المدينة + اسم الفئة
+        AND (
+            p_search IS NULL
+            OR TRIM(p_search) = ''
+            OR p.name   ILIKE '%' || TRIM(p_search) || '%'
+            OR p.slug   ILIKE '%' || TRIM(p_search) || '%'
+            OR c.name   ILIKE '%' || TRIM(p_search) || '%'
+            OR c.slug   ILIKE '%' || TRIM(p_search) || '%'
+            OR cat.name ILIKE '%' || TRIM(p_search) || '%'
+            OR cat.slug ILIKE '%' || TRIM(p_search) || '%'
+        )
+    ORDER BY p.name, c.name;
+$function$

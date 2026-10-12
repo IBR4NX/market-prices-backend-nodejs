@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS categories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid (),
     name VARCHAR(100) NOT NULL UNIQUE,
+    slug VARCHAR(255) NOT NULL UNIQUE,
     description TEXT,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -78,6 +79,7 @@ CREATE TABLE IF NOT EXISTS products (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid (),
     category_id UUID NOT NULL,
     name VARCHAR(150) NOT NULL,
+    slug VARCHAR(255) NOT NULL UNIQUE,
     description TEXT,
     quantity DECIMAL(12, 3) NOT NULL DEFAULT 1,
     unit VARCHAR(50) NOT NULL,
@@ -101,6 +103,7 @@ CREATE TABLE IF NOT EXISTS products (
 CREATE TABLE IF NOT EXISTS cities (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid (),
     name VARCHAR(100) NOT NULL UNIQUE,
+    slug VARCHAR(255) NOT NULL UNIQUE,
     description TEXT,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -152,6 +155,7 @@ CREATE TABLE IF NOT EXISTS price_submissions (
 
 CREATE TABLE IF NOT EXISTS current_prices (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid (),
+    slug VARCHAR(255) NOT NULL UNIQUE,
     product_id UUID NOT NULL,
     city_id UUID NOT NULL,
     price DECIMAL(14, 2) NOT NULL,

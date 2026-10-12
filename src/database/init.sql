@@ -230,6 +230,7 @@ CREATE OR REPLACE FUNCTION get_categories(
 RETURNS TABLE (
     id UUID,
     name VARCHAR(100),
+    slug varchar(255),
     description TEXT,
     is_active BOOLEAN,
     created_at TIMESTAMPTZ
@@ -240,6 +241,7 @@ AS $$
     SELECT
         c.id,
         c.name,
+        c.slug,
         c.description,
         c.is_active,
         c.created_at
@@ -261,6 +263,7 @@ CREATE OR REPLACE FUNCTION get_category_by_id(
 RETURNS TABLE (
     id UUID,
     name VARCHAR(100),
+    slug varchar(255),
     description TEXT,
     is_active BOOLEAN,
     created_at TIMESTAMPTZ
@@ -373,6 +376,7 @@ CREATE OR REPLACE FUNCTION get_cities(
 RETURNS TABLE (
     id UUID,
     name VARCHAR(100),
+    slug varchar(255),
     is_active BOOLEAN,
     created_at TIMESTAMPTZ
 )
@@ -382,6 +386,7 @@ AS $$
     SELECT
         c.id,
         c.name,
+        c.slug,
         c.is_active,
         c.created_at
     FROM cities c
