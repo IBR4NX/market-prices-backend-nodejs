@@ -144,9 +144,12 @@ ${uniqueUrls
 
 router.get("/rss.xml", async (_req: Request, res: Response) => {
   try {
-    const MAP_URL = `https://${(_req.query.sender as string) ?? BASE_URL}`;
+    const sender = _req.query.sender as string;
+    const type = _req.params.type
+
+    const MAP_URL = `https://${sender || BASE_URL}`;
     const HUB_URL = "https://pubsubhubbub.appspot.com/";
-    const FEED_URL = `https://${BASE_URL}/api/sitemap/rss.xml`;
+    const FEED_URL = `${MAP_URL}/sitemap/custom/${type}?sender=${sender}`;
     
     const result = await pool.query(
       `

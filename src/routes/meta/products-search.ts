@@ -6,11 +6,18 @@ import {
   SuccessResponse,
 } from "../../core/ApiResponse";
 const router = Router();
-
+export function decodeSlug(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
 router.get("/", async (req: Request, res: Response) => {
   var message;
   try {
     const { search, slug } = req.query;
+    console.log(decodeSlug(slug as string));
     const result = await pool.query(
       ` SELECT
     p.*,
@@ -46,10 +53,13 @@ router.get("/", async (req: Request, res: Response) => {
     ) AS price_history
 FROM products p
 JOIN categories c ON c.id = p.category_id
-WHERE p.slug = $1
+WHERE p.slug = $1 OR p.name LIKE '%' || TRIM($1) || '%'
   AND p.is_active = TRUE;`,
-      [search || slug],
+      [search ?? slug],
     );
+    
+        console.log(result.rows);
+
     if (result.rows.length > 0) {
       return new SuccessResponse("successful", result.rows).send(res);
     }
