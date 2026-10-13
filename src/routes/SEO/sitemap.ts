@@ -147,9 +147,9 @@ router.get("/rss.xml", async (_req: Request, res: Response) => {
     const sender = _req.query.sender as string;
     const type = _req.params.type
 
-    const MAP_URL = `https://${sender || BASE_URL}`;
+    const MAP_URL = `https://${sender?? BASE_URL}`;
     const HUB_URL = "https://pubsubhubbub.appspot.com/";
-    const FEED_URL = `${MAP_URL}/sitemap/custom/${type}?sender=${sender}`;
+    const FEED_URL = `${MAP_URL}/sitemap/${type??"rss.xml"}?sender=${sender??BASE_URL}`;
     
     const result = await pool.query(
       `
