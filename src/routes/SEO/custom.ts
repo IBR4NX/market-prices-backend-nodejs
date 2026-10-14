@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import pool from "../../database";
 import { BASE_URL } from "../../config";
-import { escapeXml } from "./sitemap";
+import { escapeXml, getDatePlus } from "./sitemap";
 const router = Router();
 interface ProductPrice {
   price: number | string;
@@ -28,6 +28,7 @@ router.get("/:type", async (_req: Request, res: Response) => {
   try {
     const sender = _req.query.sender as string;
     const type = _req.params.type;
+    const now = new Date();
 
     const MAP_URL = `https://${sender || BASE_URL}`;
     const HUB_URL = "https://pubsubhubbub.appspot.com/";
@@ -115,7 +116,7 @@ router.get("/:type", async (_req: Request, res: Response) => {
       <link>${escapeXml(url)}</link>
       <guid isPermaLink="true">${escapeXml(url)}</guid>
       <description>${escapeXml(description)}</description>
-      ${lastmod ? `<pubDate>${new Date(lastmod).toUTCString()}</pubDate>` : ""}
+      ${lastmod ? `<pubDate>${getDatePlus(now)}</pubDate>` : ""}
     </item>`,
       )
       .join("")}
@@ -152,7 +153,7 @@ router.get("/test/:type", async (_req: Request, res: Response) => {
   try {
     const sender = _req.query.sender as string;
     const type = _req.params.type;
-
+    const now = new Date();
     const MAP_URL = `https://${sender || BASE_URL}`;
     const HUB_URL = "https://pubsubhubbub.appspot.com/";
     const FEED_URL = `${MAP_URL}/sitemap/custom/test/${type}?sender=${sender}`;
@@ -164,8 +165,6 @@ router.get("/test/:type", async (_req: Request, res: Response) => {
       ORDER BY name ASC
     `);
 
-    const now = new Date().toUTCString();
-
     const items = result.rows.map((city) => {
       const url = `${MAP_URL}/prices?city=${encodeURIComponent(city.slug)}`;
 
@@ -176,7 +175,7 @@ router.get("/test/:type", async (_req: Request, res: Response) => {
           `تعرّف على أسعار المنتجات والسلع في ${city.name}، ` +
           `وتابع أحدث الأسعار والتحديثات المتاحة.`,
         category: "أسعار المدن",
-        pubDate: now,
+        pubDate: getDatePlus(now),
       };
     });
 
@@ -209,8 +208,8 @@ router.get("/test/:type", async (_req: Request, res: Response) => {
     <language>ar</language>
     <generator>Markets YE RSS Generator</generator>
     <docs>https://www.rssboard.org/rss-specification</docs>
-    <pubDate>${now}</pubDate>
-    <lastBuildDate>${now}</lastBuildDate>
+    <pubDate>${getDatePlus(now)}</pubDate>
+    <lastBuildDate>${getDatePlus(now)}</lastBuildDate>
     <ttl>30</ttl>
 
     <atom:link

@@ -1,14 +1,13 @@
 import { Router, Request, Response } from "express";
 import pool from "../../database";
 import { BASE_URL } from "../../config";
-const now = new Date();
 const router = Router();
 type SitemapUrl = {
   url: string;
   lastmod?: string | Date | null;
   priority: string;
 };
- import customRouter from "./custom";
+import customRouter from "./custom";
 import { randomInt } from "crypto";
 router.use("/custom", customRouter);
 router.get("/sitemap.xml", async (_req: Request, res: Response) => {
@@ -146,12 +145,12 @@ ${uniqueUrls
 router.get("/rss.xml", async (_req: Request, res: Response) => {
   try {
     const sender = _req.query.sender as string;
-    const type = _req.params.type
-    var count=60;
-    const MAP_URL = `https://${sender?? BASE_URL}`;
+    const type = _req.params.type;
+    const now = new Date();
+    const MAP_URL = `https://${sender ?? BASE_URL}`;
     const HUB_URL = "https://pubsubhubbub.appspot.com/";
-    const FEED_URL = `${MAP_URL}/sitemap/${type??"rss.xml"}?sender=${sender??BASE_URL}`;
-    
+    const FEED_URL = `${MAP_URL}/sitemap/${type ?? "rss.xml"}?sender=${sender ?? BASE_URL}`;
+
     const result = await pool.query(
       `
       SELECT *
@@ -219,7 +218,6 @@ router.get("/rss.xml", async (_req: Request, res: Response) => {
 
   </channel>
 </rss>`;
-
     res.status(200).type("application/rss+xml").send(xml);
   } catch (error) {
     console.error("RSS error:", error);
@@ -263,9 +261,9 @@ router.get("/notify", async (_req: Request, res: Response) => {
   }
 });
 
-function getDatePlus(ref:Date ){
-    console.log(ref.setSeconds(ref.getSeconds()+randomInt(300)));
-    return now.toUTCString();
+export function getDatePlus(ref: Date) {
+  console.log(ref.setSeconds(ref.getSeconds() + randomInt(300)));
+  return ref.toUTCString();
 }
 export function escapeXml(value: string): string {
   return value
@@ -275,5 +273,4 @@ export function escapeXml(value: string): string {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&apos;");
 }
-
 export default router;
