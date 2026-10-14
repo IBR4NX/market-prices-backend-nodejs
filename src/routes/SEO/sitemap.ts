@@ -180,6 +180,7 @@ router.get("/rss.xml", async (_req: Request, res: Response) => {
         lastmod: price.updated_at,
       };
     });
+    const now = new Date().toUTCString();
 
     const uniqueItems = Array.from(
       new Map(items.map((item) => [item.url, item])).values(),
@@ -211,7 +212,7 @@ router.get("/rss.xml", async (_req: Request, res: Response) => {
       <link>${escapeXml(url)}</link>
       <guid isPermaLink="true">${escapeXml(url)}</guid>
       <description>${escapeXml(description)}</description>
-      ${lastmod ? `<pubDate>${new Date(lastmod).toUTCString()}</pubDate>` : ""}
+      ${lastmod ? `<pubDate>${now}</pubDate>` : ""}
     </item>`,
       )
       .join("")}
