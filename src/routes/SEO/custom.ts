@@ -150,7 +150,7 @@ export default router;
 
 router.get("/test/:type", async (_req: Request, res: Response) => {
   try {
-        const sender = _req.query.sender as string;
+    const sender = _req.query.sender as string;
     const type = _req.params.type;
 
     const MAP_URL = `https://${sender || BASE_URL}`;
@@ -167,7 +167,7 @@ router.get("/test/:type", async (_req: Request, res: Response) => {
     const now = new Date().toUTCString();
 
     const items = result.rows.map((city) => {
-      const url =`${MAP_URL}/prices?city=${encodeURIComponent(city.slug)}`;
+      const url = `${MAP_URL}/prices?city=${encodeURIComponent(city.slug)}`;
 
       return {
         title: `أسعار المنتجات في ${city.name}`,
@@ -181,14 +181,14 @@ router.get("/test/:type", async (_req: Request, res: Response) => {
     });
 
     // إزالة الروابط المكررة
-const escapeCdata = (value: string) =>
-  value.replace(/]]>/g, "]]]]><![CDATA[>");
+    const escapeCdata = (value: string) =>
+      value.replace(/]]>/g, "]]]]><![CDATA[>");
 
-const uniqueItems = Array.from(
-  new Map(items.map((item) => [item.url, item])).values(),
-);
+    const uniqueItems = Array.from(
+      new Map(items.map((item) => [item.url, item])).values(),
+    );
 
-const xml = `<?xml version="1.0" encoding="UTF-8"?>
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss
     version="2.0"
     xmlns:atom="http://www.w3.org/2005/Atom"
@@ -237,8 +237,8 @@ const xml = `<?xml version="1.0" encoding="UTF-8"?>
         return `
     <item>
       <title>${escapeXml(title)}</title>
-      <link>${escapeXml(url)}</link>
-      <guid isPermaLink="true">${escapeXml(url)}</guid>
+      <link>${url}</link>
+      <guid isPermaLink="true">${url}</guid>
       <description>${escapeXml(description)}</description>
       <category><![CDATA[${escapeCdata(category)}]]></category>
       <dc:creator><![CDATA[فريق أسعار اليمن]]></dc:creator>
@@ -252,8 +252,6 @@ const xml = `<?xml version="1.0" encoding="UTF-8"?>
   </channel>
 </rss>`;
 
-
-
     res
       .status(200)
       .set({
@@ -266,5 +264,3 @@ const xml = `<?xml version="1.0" encoding="UTF-8"?>
     res.status(500).send("Failed to generate RSS");
   }
 });
-
-
