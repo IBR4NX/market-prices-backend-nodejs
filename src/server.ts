@@ -59,5 +59,8 @@ app.use((err:any, req:any, res:any, next:any) => {
 //#endregion
 
 app.listen(PORT , 
-  ()=>{console.log(`\n\x1b[1;32m➜  Server:\x1b[0m is up and running on:\x1b[34m http://localhost:${PORT}/ \x1b[0m  `);});
+  ()=>{
+    console.log(`\n\x1b[1;32m➜  Server:\x1b[0m is up and running on:\x1b[34m http://localhost:${PORT}/ \x1b[0m  `);
+
+  });
   

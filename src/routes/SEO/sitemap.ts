@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import pool from "../../database";
 import { BASE_URL } from "../../config";
-
+const now = new Date();
 const router = Router();
 type SitemapUrl = {
   url: string;
@@ -9,6 +9,7 @@ type SitemapUrl = {
   priority: string;
 };
  import customRouter from "./custom";
+import { randomInt } from "crypto";
 router.use("/custom", customRouter);
 router.get("/sitemap.xml", async (_req: Request, res: Response) => {
   try {
@@ -146,7 +147,7 @@ router.get("/rss.xml", async (_req: Request, res: Response) => {
   try {
     const sender = _req.query.sender as string;
     const type = _req.params.type
-
+    var count=60;
     const MAP_URL = `https://${sender?? BASE_URL}`;
     const HUB_URL = "https://pubsubhubbub.appspot.com/";
     const FEED_URL = `${MAP_URL}/sitemap/${type??"rss.xml"}?sender=${sender??BASE_URL}`;
@@ -180,7 +181,6 @@ router.get("/rss.xml", async (_req: Request, res: Response) => {
         lastmod: price.updated_at,
       };
     });
-    const now = new Date().toUTCString();
 
     const uniqueItems = Array.from(
       new Map(items.map((item) => [item.url, item])).values(),
@@ -202,7 +202,7 @@ router.get("/rss.xml", async (_req: Request, res: Response) => {
 <description>تابع أحدث أسعار المنتجات والسلع في اليمن حسب المدينة، وتعرّف على أسعار المنتجات في صنعاء وتعز وعدن وغيرها من المدن اليمنية.</description>
     <link>${MAP_URL}/</link>
     <language>ar</language>
-    <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
+    <lastBuildDate>${getDatePlus(now)}</lastBuildDate>
 
     ${uniqueItems
       .map(
@@ -212,7 +212,7 @@ router.get("/rss.xml", async (_req: Request, res: Response) => {
       <link>${escapeXml(url)}</link>
       <guid isPermaLink="true">${escapeXml(url)}</guid>
       <description>${escapeXml(description)}</description>
-      ${lastmod ? `<pubDate>${now}</pubDate>` : ""}
+      ${lastmod ? `<pubDate>${getDatePlus(now)}</pubDate>` : ""}
     </item>`,
       )
       .join("")}
@@ -263,7 +263,10 @@ router.get("/notify", async (_req: Request, res: Response) => {
   }
 });
 
-
+function getDatePlus(ref:Date ){
+    console.log(ref.setSeconds(ref.getSeconds()+randomInt(300)));
+    return now.toUTCString();
+}
 export function escapeXml(value: string): string {
   return value
     .replace(/&/g, "&amp;")
