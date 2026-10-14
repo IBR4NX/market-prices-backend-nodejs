@@ -191,10 +191,15 @@ const uniqueItems = Array.from(
 
 const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss
-  version="2.0"
-  xmlns:atom="http://www.w3.org/2005/Atom"
-  xmlns:dc="http://purl.org/dc/elements/1.1/"
-  xmlns:content="http://purl.org/rss/1.0/modules/content/"
+    version="2.0"
+    xmlns:atom="http://www.w3.org/2005/Atom"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:content="http://purl.org/rss/1.0/modules/content/"
+    xmlns:media="http://search.yahoo.com/mrss/"
+    xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+    xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+    xmlns:georss="http://www.georss.org/georss"
+    xmlns:creativeCommons="http://backend.userland.com/creativeCommonsRssModule"
 >
   <channel>
     <title>أسعار اليمن | أسعار المنتجات والسلع</title>
@@ -236,7 +241,7 @@ const xml = `<?xml version="1.0" encoding="UTF-8"?>
       <link>${escapeXml(url)}</link>
       <guid isPermaLink="true">${escapeXml(url)}</guid>
       <description>${escapeXml(description)}</description>
-      <category>![CDATA[${escapeCdata(category)}]]</category>
+      <category><![CDATA[${escapeCdata(category)}]]></category>
       <dc:creator><![CDATA[فريق أسعار اليمن]]></dc:creator>
       <dc:language>ar</dc:language>
       <pubDate>${escapeXml(pubDate)}</pubDate>
