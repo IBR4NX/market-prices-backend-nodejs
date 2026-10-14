@@ -167,8 +167,7 @@ router.get("/test/:type", async (_req: Request, res: Response) => {
     const now = new Date().toUTCString();
 
     const items = result.rows.map((city) => {
-      const url =
-        `${MAP_URL}/prices?city=${encodeURIComponent(city.slug)}`;
+      const url =`${MAP_URL}/prices?city=${encodeURIComponent(city.slug)}`;
 
       return {
         title: `أسعار المنتجات في ${city.name}`,
