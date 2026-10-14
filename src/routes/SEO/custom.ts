@@ -27,7 +27,7 @@ interface Product {
 router.get("/:type", async (_req: Request, res: Response) => {
   try {
     const sender = _req.query.sender as string;
-    const type = _req.params.type
+    const type = _req.params.type;
 
     const MAP_URL = `https://${sender || BASE_URL}`;
     const HUB_URL = "https://pubsubhubbub.appspot.com/";
@@ -53,30 +53,26 @@ router.get("/:type", async (_req: Request, res: Response) => {
           ? `${product.quantity} ${product.unit}`
           : "";
 
-const prices = (product.current_prices ?? [])
-  .filter((item) => item.city?.name && item.price != null)
-  .sort((a, b) =>
-    a.city!.name.localeCompare(b.city!.name, "ar"),
-  );
+      const prices = (product.current_prices ?? [])
+        .filter((item) => item.city?.name && item.price != null)
+        .sort((a, b) => a.city!.name.localeCompare(b.city!.name, "ar"));
 
-const priceDetails = prices.map((item) => {
-  const cityName = item.city!.name;
-  const price = Number(item.price).toLocaleString("en-US");
+      const priceDetails = prices.map((item) => {
+        const cityName = item.city!.name;
+        const price = Number(item.price).toLocaleString("en-US");
 
-  return `${cityName}: ${price} ريال`;
-});
+        return `${cityName}: ${price} ريال`;
+      });
 
-const description = [
-  `كم سعر ${product.name} ${product.quantity ?? ""} ${product.unit ?? ""} في اليمن؟`,
-  priceDetails.length
-    ? `الأسعار حسب المدينة: ${priceDetails.join("، ")}.`
-    : "لا تتوفر حاليًا أسعار مسجلة لهذا المنتج.",
-  `تابع أسعار ${product.name} وقارن الأسعار بين المدن اليمنية عبر منصة أسعار اليمن.`,
-]
-  .filter(Boolean)
-  .join(" ");
-
-
+      const description = [
+        `كم سعر ${product.name} ${product.quantity ?? ""} ${product.unit ?? ""} في اليمن؟`,
+        priceDetails.length
+          ? `الأسعار حسب المدينة: ${priceDetails.join("، ")}.`
+          : "لا تتوفر حاليًا أسعار مسجلة لهذا المنتج.",
+        `تابع أسعار ${product.name} وقارن الأسعار بين المدن اليمنية عبر منصة أسعار اليمن.`,
+      ]
+        .filter(Boolean)
+        .join(" ");
 
       const title = productQuantity
         ? `سعر ${productName} ${productQuantity} اليوم في اليمن`
@@ -133,5 +129,138 @@ const description = [
     res.status(500).send("Failed to generate RSS");
   }
 });
+function getImgAndSy(url: string) {
+  return `<!-- صورة القناة -->
+  <image>
+  <url>${url}/favicons/favicon-32x32.png</url>
+  <title>أسعار اليمن</title>
+  <link>${url}</link>
+  <width>144</width>
+  <height>144</height>
+  <description>شعار منصة أسعار اليمن</description>
+  </image>
+  
+  <!-- معلومات التحديث الدوري -->
+  <sy:updatePeriod>hourly</sy:updatePeriod>
+  <sy:updateFrequency>1</sy:updateFrequency> 
+  `;
+}
 
 export default router;
+
+router.get("/test/:type", async (_req: Request, res: Response) => {
+  try {
+        const sender = _req.query.sender as string;
+    const type = _req.params.type;
+
+    const MAP_URL = `https://${sender || BASE_URL}`;
+    const HUB_URL = "https://pubsubhubbub.appspot.com/";
+    const FEED_URL = `${MAP_URL}/sitemap/custom/test/${type}?sender=${sender}`;
+
+    const result = await pool.query(`
+      SELECT id, name, slug
+      FROM cities
+      WHERE is_active = true
+      ORDER BY name ASC
+    `);
+
+    const now = new Date().toUTCString();
+
+    const items = result.rows.map((city) => {
+      const url =
+        `${MAP_URL}/${encodeURIComponent(city.slug)}`;
+
+      return {
+        title: `أسعار المنتجات في ${city.name}`,
+        url,
+        description:
+          `تعرّف على أسعار المنتجات والسلع في ${city.name}، ` +
+          `وتابع أحدث الأسعار والتحديثات المتاحة.`,
+        category: "أسعار المدن",
+        pubDate: now,
+      };
+    });
+
+    // إزالة الروابط المكررة
+const escapeCdata = (value: string) =>
+  value.replace(/]]>/g, "]]]]><![CDATA[>");
+
+const uniqueItems = Array.from(
+  new Map(items.map((item) => [item.url, item])).values(),
+);
+
+const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<rss
+  version="2.0"
+  xmlns:atom="http://www.w3.org/2005/Atom"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:content="http://purl.org/rss/1.0/modules/content/"
+>
+  <channel>
+    <title>أسعار اليمن | أسعار المنتجات والسلع</title>
+    <link>${escapeXml(MAP_URL)}/</link>
+    <description>${escapeXml(
+      "تابع أحدث أسعار المنتجات والسلع في اليمن حسب المدينة.",
+    )}</description>
+    <language>ar</language>
+    <generator>Markets YE RSS Generator</generator>
+    <docs>https://www.rssboard.org/rss-specification</docs>
+    <pubDate>${now}</pubDate>
+    <lastBuildDate>${now}</lastBuildDate>
+    <ttl>30</ttl>
+
+    <atom:link
+      href="${escapeXml(FEED_URL)}"
+      rel="self"
+      type="application/rss+xml"
+    />
+
+    ${getImgAndSy(MAP_URL)}
+
+    ${uniqueItems
+      .map(({ title, url, description, category, pubDate }) => {
+        const contentHtml = `
+          <article dir="rtl" lang="ar">
+            <h2>${escapeXml(title)}</h2>
+            <p>${escapeXml(description)}</p>
+            <p>التصنيف: ${escapeXml(category)}</p>
+            <p>
+              <a href="${escapeXml(url)}">عرض تفاصيل الأسعار</a>
+            </p>
+          </article>
+        `;
+
+        return `
+    <item>
+      <title>${escapeXml(title)}</title>
+      <link>${escapeXml(url)}</link>
+      <guid isPermaLink="true">${escapeXml(url)}</guid>
+      <description>${escapeXml(description)}</description>
+      <category>![CDATA[${escapeCdata(category)}]]</category>
+      <dc:creator><![CDATA[فريق أسعار اليمن]]></dc:creator>
+      <dc:language>ar</dc:language>
+      <pubDate>${escapeXml(pubDate)}</pubDate>
+      <content:encoded><![CDATA[${escapeCdata(contentHtml)}]]></content:encoded>
+    </item>`;
+      })
+      .join("")}
+
+  </channel>
+</rss>`;
+
+
+
+    res
+      .status(200)
+      .set({
+        "Content-Type": "application/rss+xml; charset=utf-8",
+        "Cache-Control": "public, max-age=300, stale-while-revalidate=600",
+      })
+      .send(xml);
+  } catch (error) {
+    console.error("RSS error:", error);
+    res.status(500).send("Failed to generate RSS");
+  }
+});
+
+
