@@ -166,7 +166,7 @@ router.get("/test/:type", async (_req: Request, res: Response) => {
     `);
 
     const items = result.rows.map((city) => {
-      const url = `${MAP_URL}/prices?city=${encodeURIComponent(city.slug)}`;
+      const url = `${MAP_URL}/city/${city.name}`;
 
       return {
         title: `أسعار المنتجات في ${city.name}`,
@@ -206,7 +206,7 @@ router.get("/test/:type", async (_req: Request, res: Response) => {
       "تابع أحدث أسعار المنتجات والسلع في اليمن حسب المدينة.",
     )}</description>
     <language>ar</language>
-    <generator>Markets YE RSS Generator</generator>
+    <generator> دليلك RSS Generator</generator>
     <docs>https://www.rssboard.org/rss-specification</docs>
     <pubDate>${getDatePlus(now)}</pubDate>
     <lastBuildDate>${getDatePlus(now)}</lastBuildDate>

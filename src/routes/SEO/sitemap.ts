@@ -262,7 +262,7 @@ router.get("/notify", async (_req: Request, res: Response) => {
 });
 
 export function getDatePlus(ref: Date) {
-  console.log(ref.setSeconds(ref.getSeconds() + randomInt(300)));
+  ref.setSeconds(ref.getSeconds() + randomInt(300));
   return ref.toUTCString();
 }
 export function escapeXml(value: string): string {

@@ -2,7 +2,7 @@ import { Request, Response, Router } from "express";
 
 import pool from "../../database";
 import { InternalErrorResponse, NotFoundResponse, SuccessResponse } from "../../core/ApiResponse";
-import { cache } from "@/core/cache";
+import { cache } from "../../core/cache";
 
 const router = Router();
 
