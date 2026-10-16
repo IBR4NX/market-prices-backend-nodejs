@@ -68,7 +68,7 @@ router.get("/", async (req: Request, res: Response) => {
                             JOIN categories c ON c.id = p.category_id
                             WHERE p.slug = $1 OR p.name LIKE '%' || TRIM($1) || '%'
                             AND p.is_active = TRUE;`,
-      [search ?? slug,city],
+      [search ?? slug,city??""],
     );
 
     console.log(result.rows);
