@@ -71,7 +71,7 @@ router.get("/:type", async (_req: Request, res: Response) => {
         : `سعر ${productName} اليوم في اليمن حسب المدينة`;
       return {
         title,
-        url: `${MAP_URL.replace("", "-")}/${productName}`,
+        url: `${MAP_URL.replace(/\/+$/, "")}/${productName.replace(" ", "-")}`,
         description,
         lastmod: product.updated_at,
       };
