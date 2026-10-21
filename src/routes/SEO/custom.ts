@@ -28,6 +28,7 @@ router.get("/:type", async (_req: Request, res: Response) => {
   try {
     const sender = _req.query.sender as string;
     const type = _req.params.type;
+    const urlIs = _req.query.is;
     const now = new Date();
 
     const MAP_URL = `https://${sender || BASE_URL}`;
@@ -71,7 +72,7 @@ router.get("/:type", async (_req: Request, res: Response) => {
         : `سعر ${productName} اليوم في اليمن حسب المدينة`;
       return {
         title,
-        url: `${MAP_URL.replace(/\/+$/, "")}/${productName.replaceAll(" ", "-")}`,
+        url: `${MAP_URL.replace(/\/+$/, "")}/${urlIs == "name" ? productName.replaceAll(" ", "-") : productSlug}`,
         description,
         lastmod: product.updated_at,
       };
