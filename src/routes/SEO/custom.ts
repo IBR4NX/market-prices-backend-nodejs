@@ -36,23 +36,14 @@ router.get("/:type", async (_req: Request, res: Response) => {
     const result = await pool.query(`SELECT * FROM get_products(NULL);`);
 
     const sortedRows: Product[] = result.rows
-      .map(
-        (row: { product?: Product } & Partial<Product>) =>
-          row.product ?? (row as Product),
-      )
-      .sort(
-        (a: Product, b: Product) =>
-          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
-      );
+      .map((row: { product?: Product } & Partial<Product>) => row.product ?? (row as Product))
+      .sort((a: Product, b: Product) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
 
     const items = sortedRows.map((product: Product) => {
       const productName = product.name.trim();
       const productSlug = product.slug;
 
-      const productQuantity =
-        product.quantity != null && product.unit
-          ? `${product.quantity} ${product.unit}`
-          : "";
+      const productQuantity = product.quantity != null && product.unit ? `${product.quantity} ${product.unit}` : "";
 
       const prices = (product.current_prices ?? [])
         .filter((item) => item.city?.name && item.price != null)
@@ -80,15 +71,13 @@ router.get("/:type", async (_req: Request, res: Response) => {
         : `سعر ${productName} اليوم في اليمن حسب المدينة`;
       return {
         title,
-        url: `${MAP_URL.replace(/\/+$/, "")}/${productSlug}`,
+        url: `${MAP_URL.replace(/\/+$/, "")}/${productName}`,
         description,
         lastmod: product.updated_at,
       };
     });
 
-    const uniqueItems = Array.from(
-      new Map(items.map((item) => [item.url, item])).values(),
-    );
+    const uniqueItems = Array.from(new Map(items.map((item) => [item.url, item])).values());
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" >
@@ -171,21 +160,16 @@ router.get("/test/:type", async (_req: Request, res: Response) => {
       return {
         title: `أسعار المنتجات في ${city.name}`,
         url,
-        description:
-          `تعرّف على أسعار المنتجات والسلع في ${city.name}، ` +
-          `وتابع أحدث الأسعار والتحديثات المتاحة.`,
+        description: `تعرّف على أسعار المنتجات والسلع في ${city.name}، ` + `وتابع أحدث الأسعار والتحديثات المتاحة.`,
         category: "أسعار المدن",
         pubDate: getDatePlus(now),
       };
     });
 
     // إزالة الروابط المكررة
-    const escapeCdata = (value: string) =>
-      value.replace(/]]>/g, "]]]]><![CDATA[>");
+    const escapeCdata = (value: string) => value.replace(/]]>/g, "]]]]><![CDATA[>");
 
-    const uniqueItems = Array.from(
-      new Map(items.map((item) => [item.url, item])).values(),
-    );
+    const uniqueItems = Array.from(new Map(items.map((item) => [item.url, item])).values());
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss
@@ -202,9 +186,7 @@ router.get("/test/:type", async (_req: Request, res: Response) => {
   <channel>
     <title>أسعار اليمن | أسعار المنتجات والسلع</title>
     <link>${escapeXml(MAP_URL)}/</link>
-    <description>${escapeXml(
-      "تابع أحدث أسعار المنتجات والسلع في اليمن حسب المدينة.",
-    )}</description>
+    <description>${escapeXml("تابع أحدث أسعار المنتجات والسلع في اليمن حسب المدينة.")}</description>
     <language>ar</language>
     <generator> دليلك RSS Generator</generator>
     <docs>https://www.rssboard.org/rss-specification</docs>
