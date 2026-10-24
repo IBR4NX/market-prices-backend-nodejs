@@ -7,6 +7,7 @@ type SitemapUrl = {
   lastmod?: string | Date | null;
   priority: string;
 };
+var check = true;
 import customRouter from "./custom";
 import { randomInt } from "crypto";
 router.use("/custom", customRouter);
@@ -33,37 +34,27 @@ router.get("/sitemap.xml", async (_req: Request, res: Response) => {
         WHERE is_active = true
       `),
     ]);
+    if (check) {
+      console.log(cities, categories);
+      check = false;
+    }
 
     const urls: SitemapUrl[] = [
-      {
-        url: "/",
-        priority: "1.0",
-      },
-      {
-        url: "/prices",
-        priority: "0.9",
-      },
-      {
-        url: "/about",
-        priority: "0.5",
-      },
-
-      ...cities.rows.map((city) => ({
-        url: `/city/${city.name}`,
-        lastmod: city.updated_at,
-        priority: "0.8",
-      })),
+      // ...cities.rows.map((city) => ({
+      //   url: `/city/${city.name}`,
+      //   lastmod: city.updated_at,
+      //   priority: "0.8",
+      // })),
+      // ...categories.rows.map((category) => ({
+      //   url: `/category/${category.name}`,
+      //   lastmod: category.updated_at,
+      //   priority: "0.7",
+      // })),
 
       ...products.rows.map((product) => ({
-        url: `/product/${product.name}`,
+        url: `/${String(product.name).replaceAll(" ", "-")}`,
         lastmod: product.updated_at,
         priority: "0.8",
-      })),
-
-      ...categories.rows.map((category) => ({
-        url: `/category/${category.name}`,
-        lastmod: category.updated_at,
-        priority: "0.7",
       })),
     ];
 
@@ -113,9 +104,7 @@ router.get("/sitemap2.xml", async (_req: Request, res: Response) => {
       priority: "0.8",
     }));
 
-    const uniqueUrls = Array.from(
-      new Map(urls.map((item) => [item.url, item])).values(),
-    );
+    const uniqueUrls = Array.from(new Map(urls.map((item) => [item.url, item])).values());
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset
@@ -162,10 +151,7 @@ router.get("/rss.xml", async (_req: Request, res: Response) => {
       `,
       [null, null, null],
     );
-    const sortedRows = result.rows.sort(
-      (a, b) =>
-        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
-    );
+    const sortedRows = result.rows.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
     const items = sortedRows.map((price) => {
       const citySlug = price.city_name.trim().replace(/\s+/g, "-");
 
@@ -181,9 +167,7 @@ router.get("/rss.xml", async (_req: Request, res: Response) => {
       };
     });
 
-    const uniqueItems = Array.from(
-      new Map(items.map((item) => [item.url, item])).values(),
-    );
+    const uniqueItems = Array.from(new Map(items.map((item) => [item.url, item])).values());
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" >
