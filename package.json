@@ -8,7 +8,7 @@
   "main": "server",
   "scripts": {
     "dev": "cls && ts-node-dev  src/server",
-    "test": "ts-node-dev src/server ",
+    "test": "eslint src/server ",
     "build": "tsc",
     "clear": "cls",
     "start": "node dist/index.js",
